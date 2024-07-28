@@ -9,11 +9,11 @@ class TestS3Repository(unittest.TestCase):
         mock_s3_client = MagicMock()
         mock_boto_client.return_value = mock_s3_client
 
-        repository = S3Repository('http://localhost:9000')
-        actual = repository.put('test.txt', 'test-bucket')
+        repository = S3Repository('http://localhost:9000', 'us-west-2')
+        actual = repository.put('test', 'text.txt', 'path/')
 
         self.assertIsNone(actual)
-        mock_s3_client.upload_file.assert_called_once_with('test.txt', 'test-bucket', 'test.txt')
+        mock_s3_client.upload_file.assert_called_once_with('test', 'text.txt', 'path/')
 
 if __name__ == '__main__':
     unittest.main()
