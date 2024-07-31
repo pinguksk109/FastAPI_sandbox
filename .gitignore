@@ -1,5 +1,8 @@
-# 仮想環境ディレクトリ
 venv/
 
-# キャッシュディレクトリ
 __pycache__/
+
+docker/docker
+docker/data
+
+.idea
