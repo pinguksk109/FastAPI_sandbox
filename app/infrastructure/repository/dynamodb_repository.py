@@ -3,7 +3,7 @@ from boto3.dynamodb.conditions import Attr
 from botocore.exceptions import ClientError
 from datetime import datetime, timezone
 
-class DynamodbRepository:
+class DynamoDBRepository:
     def __init__(self):
         self.dyn_resource = boto3.resource('dynamodb', region_name='us-west-2', aws_access_key_id='local',
         aws_secret_access_key='local', endpoint_url='http://localhost:8000')
@@ -45,42 +45,29 @@ class DynamodbRepository:
             raise
     
     def scan(self, userId):
+
+        # 公式ドキュメントの書き方
+        movies = []
+        scan_kwargs = {
+            "FilterExpression": Attr('userId').eq(userId) & Attr('created_at').between('2024-07-01', '2024-07-31')
+            # "ProjectionExpression": "#yr, title, info.rating",
+            # "ExpressionAttributeNames": {"#yr": "year"},
+        }
         try:
-            response = self.table.scan(
-                FilterExpression=Attr('userId').eq(userId) & Attr('created_at').between('2024-07-01', '2024-07-31')
-            )
-            return response.get('Items', [])
+            done = False
+            start_key = None
+            while not done:
+                if start_key:
+                    scan_kwargs["ExclusiveStartKey"] = start_key
+                response = self.table.scan(**scan_kwargs)
+                movies.extend(response.get("Items", []))
+                start_key = response.get("LastEvaluatedKey", None)
+                done = start_key is None
 
         except ClientError as err:
             raise
+    
+        return movies
 
-        # 公式ドキュメントの書き方
-        # movies = []
-        # scan_kwargs = {
-        #     "FilterExpression": Attr('userId').eq(userId) & Attr('created_at').between('2024-07-01', '2024-07-31')
-        #     # "ProjectionExpression": "#yr, title, info.rating",
-        #     # "ExpressionAttributeNames": {"#yr": "year"},
-        # }
-        # try:
-        #     done = False
-        #     start_key = None
-        #     while not done:
-        #         if start_key:
-        #             scan_kwargs["ExclusiveStartKey"] = start_key
-        #         response = self.table.scan(**scan_kwargs)
-        #         movies.extend(response.get("Items", []))
-        #         start_key = response.get("LastEvaluatedKey", None)
-        #         done = start_key is None
-
-        # except ClientError as err:
-        #     print(f"Unexpected error: {err}")
-        #     raise
-
-        # return movies
-
-if __name__ == '__main__':
-    repository = DynamodbRepository()
-    # repository.create("3", "xxxxx")
-    # repository.add('0', 'xxxxx')
-    response = repository.scan('xxxxx')
-    print(response)
+    async def get_mock_data(self, organization_id: str) -> dict:
+        return {"item1": "data1", "item2": "data2"}
