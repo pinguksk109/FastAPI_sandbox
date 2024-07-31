@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 
 class TestDynamodbRepository(unittest.TestCase):
 
-    @patch('dynamodb_repository.boto3.resource')
+    @patch('app.infrastructure.repository.dynamodb_repository.boto3.resource')
     def setUp(self, mock_boto_resource):
         self.mock_table = MagicMock()
         mock_dynamodb = MagicMock()
@@ -14,13 +14,12 @@ class TestDynamodbRepository(unittest.TestCase):
 
         self.repository = DynamodbRepository()
 
-    @patch('dynamodb_repository.datetime')
+    @patch('app.infrastructure.repository.dynamodb_repository.datetime')
     def test_create_item(self, mock_datetime):
         id = 'test-id'
         userId = 'test-userId'
-
-        mock_datetime.now.return_value = datetime(2023, 7, 30, tzinfo=timezone.utc)
-        mock_datetime.now.return_value.isoformat.return_value = '2023-07-30T00:00:00+00:00'
+        mock_now = datetime(2023, 7, 30, tzinfo=timezone.utc)
+        mock_datetime.now.return_value = mock_now
 
         self.repository.create(id, userId)
 
