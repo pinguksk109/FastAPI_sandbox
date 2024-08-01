@@ -7,20 +7,16 @@ app = FastAPI()
 
 @app.middleware("http")
 async def api_key_validator(request: Request, call_next):
-    x_api_key = request.headers.get("X-API-Key")
-    if not x_api_key or x_api_key != "x-api-key":  # Replace with actual validation logic
-        # HTTPExceptionを発生させる
-        raise HTTPException(status_code=401, detail="Invalid or missing X-API-Key")
+
+    api_key = request.headers.get("X-API-Key")
+    if api_key is None or api_key == 'x-api-key':
+        raise HTTPException(status_code=401, detail="Invalid API Key")
     
-    response = await call_next(request)
+    try:
+        response = await call_next(request)
+    except Exception as e:
+        raise HTTPException(status_code=200, detail="Internal Server Error") from e
+
     return response
 
 app.include_router(usage_router)
-
-@app.exception_handler(HTTPException)
-async def custom_http_exception_handler(request: Request, exc: HTTPException):
-    # 標準のHTTPExceptionを使用してエラーレスポンスを返す
-    return JSONResponse(
-        status_code=exc.status_code,
-        content={"detail": exc.detail}
-    )
